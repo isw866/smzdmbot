@@ -16,6 +16,7 @@ class NotifyBot(object):
         self.server_chain()
         self.wecom()
         self.tg_bot()
+        self.dingtalk()  # 添加钉钉通知方法调用
 
     def push_plus(self, template="html"):
         if not self.kwargs.get("PUSH_PLUS_TOKEN", None):
@@ -103,3 +104,22 @@ class NotifyBot(object):
                 logger.warning("Fail to notify TelegramBot")
         except Exception as e:
             logger.error(e)
+            
+    def dingtalk(self):
+        if not self.kwargs.get("DINGTALK_WEBHOOK", None):
+            logger.warning("⚠️ DINGTALK_WEBHOOK not set, skip DingTalk notification")
+            return
+        DINGTALK_WEBHOOK = self.kwargs.get("DINGTALK_WEBHOOK")
+        message = {
+            "msgtype": "text",
+            "text": {"content": f"{self.title}\n{self.content}"},
+        }
+        headers = {"Content-Type": "application/json"}
+        try:
+            resp = requests.post(DINGTALK_WEBHOOK, headers=headers, data=json.dumps(message))
+            if resp.ok:
+                logger.info("✅ DingTalk notified")
+            else:
+                logger.warning("Fail to notify DingTalk")
+        except Exception as e:
+            logger.error(e)        
