@@ -7,7 +7,7 @@ from loguru import logger
 
 
 class NotifyBot(object):
-    def __init__(self, content, title="张大妈签到", **kwargs: Dict) -> None:
+    def __init__(self, content, title="", **kwargs: Dict) -> None:
         self.content = content
         self.title = title
         self.kwargs = kwargs
