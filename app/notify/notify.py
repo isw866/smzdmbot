@@ -93,7 +93,7 @@ class NotifyBot(object):
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         params = {
             "chat_id": str(TG_USER_ID),
-            "text": f"{self.title}\n{self.content}",
+            "text": f"{self.content}",
             "disable_web_page_preview": "true",
         }
         try:
