@@ -7,9 +7,10 @@ on:
     types:
       - completed
 
-  # UTC时间，对应Beijing时间 8：30
+  # UTC时间 -> 北京时间 0:07 => 08:07
   schedule:
     - cron: "07 16 * * *"
+
 jobs:
   run:
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
@@ -25,6 +26,26 @@ jobs:
         TG_USER_ID: ${{ secrets.TG_USER_ID }}
         TG_BOT_API: ${{ secrets.TG_BOT_API }}
     steps:
-      - name: Working
+      - name: Run script with retry
+        id: run_script
         run: |
-          python /smzdm_bot/main.py
+          set -e
+          max_retry=3
+          count=0
+          until python /smzdm_bot/main.py; do
+            count=$((count+1))
+            echo "Run failed, retry $count/$max_retry ..."
+            if [ $count -ge $max_retry ]; then
+              echo "All retries failed."
+              exit 1
+            fi
+            sleep 15
+          done
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Sending failure notification via Telegram..."
+          curl -s -X POST "${{ secrets.TG_BOT_API }}/bot${{ secrets.TG_BOT_TOKEN }}/sendMessage" \
+            -d chat_id=${{ secrets.TG_USER_ID }} \
+            -d text="⚠️ GitHub Actions: 张大妈 Check in 脚本连续失败 3 次，请检查。"
